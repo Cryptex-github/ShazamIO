@@ -239,9 +239,11 @@ class Shazam(Converter, Geo):
         results = await self.send_recognize_request(signature)
         return results
 
-    async def send_recognize_request(self, sig: DecodedMessage) -> typing.Union[ShazamResponse, dict]:
-
-        data = Converter.data_search(Request.TIME_ZONE,
+    async def send_recognize_request(self, sig: DecodedMessage) -> typing.Union[ShazamResponse, dict]):
+        
+        loop = asyncio.get_event_loop()
+        
+        data = await loop.run_in_executor(None, Converter.data_search, Request.TIME_ZONE,
                                      sig.encode_to_uri(),
                                      int(sig.number_samples / sig.sample_rate_hz * 1000),
                                      int(time.time() * 1000))
