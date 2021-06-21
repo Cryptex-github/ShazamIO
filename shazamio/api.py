@@ -3,6 +3,7 @@ import uuid
 import time
 
 import typing
+from io import BytesIO
 
 from .signature import DecodedMessage
 from .models import Request, ShazamUrl
@@ -209,14 +210,18 @@ class Shazam(Converter, Geo):
                                   ShazamUrl.SEARCH_MUSIC.format(query, limit),
                                   headers=Request.HEADERS)
 
-    async def recognize_song(self, file_path: typing.Union[str, pathlib.Path]) -> typing.Union[ShazamResponse, dict]:
+    async def recognize_song(self, file: typing.Union[BytesIO, str, pathlib.Path]) -> typing.Union[ShazamResponse, dict]:
         """
         Creating a song signature based on a file and searching for this signature in the shazam database.
 
             :param file_path: Path to song file
             :return: Dictionary with information about the found song
         """
-        file = await load_file(file_path, 'rb')
+        if isinstance(file, (str, pathlib.Path)):
+            file = await load_file(file_path, 'rb')
+        else:
+            file = file.read()
+        
         audio = self.normalize_audio_data(file)
         signature_generator = self.create_signature_generator(audio)
         signature = signature_generator.get_next_signature()
