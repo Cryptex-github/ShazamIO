@@ -244,7 +244,7 @@ class Shazam(Converter, Geo):
         loop = asyncio.get_event_loop()
         
         data = await loop.run_in_executor(None, Converter.data_search, Request.TIME_ZONE,
-                                     sig.encode_to_uri(),
+                                     await loop.run_in_executor(None, sig.encode_to_uri),
                                      int(sig.number_samples / sig.sample_rate_hz * 1000),
                                      int(time.time() * 1000))
 
