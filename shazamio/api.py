@@ -2,6 +2,8 @@ import pathlib
 import uuid
 import time
 
+import asyncio
+
 import typing
 from io import BytesIO
 
@@ -220,7 +222,8 @@ class Shazam(Converter, Geo):
         if isinstance(file, (str, pathlib.Path)):
             file = await load_file(file, 'rb')
         else:
-            file = file.read()
+            loop = asyncio.get_event_loop()
+            file = await loop.run_in_executor(None, file.read)
         
         audio = self.normalize_audio_data(file)
         signature_generator = self.create_signature_generator(audio)
