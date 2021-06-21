@@ -214,11 +214,11 @@ class Shazam(Converter, Geo):
         """
         Creating a song signature based on a file and searching for this signature in the shazam database.
 
-            :param file_path: Path to song file
+            :param file: Path to song file
             :return: Dictionary with information about the found song
         """
         if isinstance(file, (str, pathlib.Path)):
-            file = await load_file(file_path, 'rb')
+            file = await load_file(file, 'rb')
         else:
             file = file.read()
         
