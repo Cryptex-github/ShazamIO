@@ -211,6 +211,15 @@ class Shazam(Converter, Geo):
         return await self.request('GET',
                                   ShazamUrl.SEARCH_MUSIC.format(query, limit),
                                   headers=Request.HEADERS)
+   
+    def get_signature(self, file):
+        audio = self.normalize_audio_data(file)
+        signature_generator = self.create_signature_generator(audio)
+        signature = signature_generator.get_next_signature()
+        while not signature:
+            signature = signature_generator.get_next_signature()
+
+        return signature
 
     async def recognize_song(self, file: typing.Union[BytesIO, str, pathlib.Path]) -> typing.Union[ShazamResponse, dict]:
         """
@@ -219,17 +228,14 @@ class Shazam(Converter, Geo):
             :param file: Path to song file
             :return: Dictionary with information about the found song
         """
+        loop = asyncio.get_event_loop()
         if isinstance(file, (str, pathlib.Path)):
             file = await load_file(file, 'rb')
         else:
-            loop = asyncio.get_event_loop()
             file = await loop.run_in_executor(None, file.read)
         
-        audio = self.normalize_audio_data(file)
-        signature_generator = self.create_signature_generator(audio)
-        signature = signature_generator.get_next_signature()
-        while not signature:
-            signature = signature_generator.get_next_signature()
+        signature = await loop.run_in_executor(None, self.get_signature, file)
+        
         results = await self.send_recognize_request(signature)
         return results
 
